@@ -4,14 +4,17 @@ using System;
 using System.Collections;
 using TMPro;
 using UnityEngine;
+using AmongChess.Rpc;
 
 namespace AmongChess.Game
 {
 	internal class Utils
 	{
 		public static char[] PieceTranslation = new char[6] { 'P', 'N', 'B', 'R', 'Q', 'K' };
-		public static uint[] PieceHats = new uint[6] { 0u, 43u, 48u, 59u, 32u, 30u };
-		public static uint[] PieceSkins = new uint[6] { 0u, 7u, 11u, 15u, 6u, 8u };
+		// 2026.6.5 uses string cosmetic IDs ("hat_xxx"/"skin_xxx"). Order matches PieceTranslation:
+		// [0]=Pawn(兵), [1]=Knight(马), [2]=Bishop(象), [3]=Rook(车), [4]=Queen(后), [5]=King(王)
+		public static string[] PieceHats = new string[6] { "hat_NoHat", "hat_pk03_Fedora", "hat_pk03_Security1", "hat_pk05_Helmet", "hat_pk02_HaloHat", "hat_pk02_Crown" };
+		public static string[] PieceSkins = new string[6] { "skin_None", "skin_SuitB", "skin_Security", "skin_Archae", "skin_Science", "skin_SuitW" };
 
 		public static PlayerControl ClosestPiece(PlayerControl referencePlayer, int color, out float minDistance)
 		{
@@ -77,8 +80,8 @@ namespace AmongChess.Game
 		{
 			CustomPlayer customPlayer = Game.AllCustomPlayers[index];
 			PlayerControl playerControl = Game.AllPlayers[index];
-			playerControl.SetHat(customPlayer.HatId, playerControl.Data.ColorId);
-			playerControl.SetSkin(customPlayer.SkinId);
+			playerControl.SetHat(customPlayer.HatId, playerControl.Data.DefaultOutfit.ColorId);
+			playerControl.SetSkin(customPlayer.SkinId, playerControl.Data.DefaultOutfit.ColorId);
 			playerControl.SetPet(customPlayer.PetId);
 		}
 
@@ -115,27 +118,27 @@ namespace AmongChess.Game
 
 		public static void SynchronizeTime(float timer)
 		{
-			MessageWriter rpcMessageTime = AmongUsClient.Instance.StartRpc(PlayerControl.LocalPlayer.NetId, 70, (SendOption)1);
+			MessageWriter rpcMessageTime = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)EnumRpc.SynchronizeTime, SendOption.Reliable, -1);
 			rpcMessageTime.Write(timer);
-			rpcMessageTime.EndMessage();
+			AmongUsClient.Instance.FinishRpcImmediately(rpcMessageTime);
 		}
 
 		public static void SendCoordinates((int x, int y) fromCoordinates, (int x, int y) toCoordinates)
 		{
-			MessageWriter rpcMessageMove = AmongUsClient.Instance.StartRpc(PlayerControl.LocalPlayer.NetId, 64, (SendOption)1);
+			MessageWriter rpcMessageMove = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)EnumRpc.MovePiece, SendOption.Reliable, -1);
 			rpcMessageMove.Write((byte)fromCoordinates.x);
 			rpcMessageMove.Write((byte)fromCoordinates.y);
 			rpcMessageMove.Write((byte)toCoordinates.x);
 			rpcMessageMove.Write((byte)toCoordinates.y);
-			rpcMessageMove.EndMessage();
+			AmongUsClient.Instance.FinishRpcImmediately(rpcMessageMove);
 		}
 
 		public static void RevertMove(int playerIndex, PlayerControl oldPlayer)
 		{
 			RevertClothing(playerIndex);
-			MessageWriter rpcMessageLocal = AmongUsClient.Instance.StartRpc(PlayerControl.LocalPlayer.NetId, 66, (SendOption)1);
+			MessageWriter rpcMessageLocal = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)EnumRpc.ReturnPiece, SendOption.Reliable, -1);
 			rpcMessageLocal.Write(PlayerControl.LocalPlayer.PlayerId);
-			rpcMessageLocal.EndMessage();
+			AmongUsClient.Instance.FinishRpcImmediately(rpcMessageLocal);
 			oldPlayer.gameObject.active = true;
 			oldPlayer.name = oldPlayer.name[1..];
 			Game.LocalActivity = EnumActivity.GameSelect;

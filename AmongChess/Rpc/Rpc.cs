@@ -1,5 +1,7 @@
 ﻿using HarmonyLib;
 using Hazel;
+using InnerNet;
+using UnityEngine;
 
 namespace AmongChess.Rpc
 {
@@ -10,7 +12,6 @@ namespace AmongChess.Rpc
 		{
 			public static void Postfix(byte callId, MessageReader reader)
 			{
-				UnityEngine.Debug.logger.Log("CallId: " + callId.ToString());
 				switch ((EnumRpc)callId)
 				{
 					case EnumRpc.MovePiece:
@@ -33,9 +34,10 @@ namespace AmongChess.Rpc
 						byte playerId = reader.ReadByte();
 						byte selectedPiece = reader.ReadByte();
 						PlayerControl playerControl = Game.Utils.FindPlayer(playerId);
-						playerControl.SetHat(Game.Utils.PieceHats[selectedPiece], playerControl.Data.ColorId);
-						playerControl.SetSkin(Game.Utils.PieceSkins[selectedPiece]);
-						playerControl.SetPet(0u);
+						if (playerControl == null || playerControl.Data == null) break;
+						playerControl.SetHat(Game.Utils.PieceHats[selectedPiece].ToString(), playerControl.Data.DefaultOutfit.ColorId);
+						playerControl.SetSkin(Game.Utils.PieceSkins[selectedPiece].ToString(), playerControl.Data.DefaultOutfit.ColorId);
+						playerControl.SetPet("");
 						break;
 					}
 					case EnumRpc.ReturnPiece:
@@ -63,6 +65,7 @@ namespace AmongChess.Rpc
 							byte optionId = reader.ReadByte();
 							Lobby.ClassOption optionSingle = Lobby.Options.AllOption.Find(option => option.Id == optionId);
 							optionSingle.Value = reader.ReadByte();
+							Lobby.Options.NotifyOptionChanged(optionSingle);
 						}
 						break;
 					}
@@ -70,7 +73,7 @@ namespace AmongChess.Rpc
 					{
 						if (AmongUsClient.Instance.AmHost)
 						{
-							ShipStatus.RpcEndGame(GameOverReason.ImpostorByVote, false);
+							GameManager.Instance.RpcEndGame(GameOverReason.ImpostorsByVote, false);
 						}
 						break;
 					}
@@ -85,26 +88,30 @@ namespace AmongChess.Rpc
 						if (AmongUsClient.Instance.AmHost)
 						{
 							byte playerId = reader.ReadByte();
-							Game.Utils.FindCustom(playerId).Loaded = true;
-							Game.Utils.FindCustom(PlayerControl.LocalPlayer.PlayerId).Loaded = true;
-							if (Game.Game.AllCustomPlayers.TrueForAll(ele => ele.Loaded == true))
+							Game.CustomPlayer cp = Game.Utils.FindCustom(playerId);
+							if (cp != null) cp.Loaded = true;
+							Game.CustomPlayer local = Game.Utils.FindCustom(PlayerControl.LocalPlayer.PlayerId);
+							if (local != null) local.Loaded = true;
+							if (Game.Game.AllCustomPlayers.Count > 0 && Game.Game.AllCustomPlayers.TrueForAll(ele => ele.Loaded == true))
 							{
 								int[] colorIds = (int[])Game.Game.ColorIds.GetValue(Game.Game.AllPlayers.Count - 1);
-								Game.Game.LocalActivity = PlayerControl.LocalPlayer.Data.ColorId == colorIds[0] ? Game.EnumActivity.GameSelect : Game.EnumActivity.Lobby;
-								MessageWriter rpcMessageTime = AmongUsClient.Instance.StartRpc(PlayerControl.LocalPlayer.NetId, 72, (SendOption)1);
-								rpcMessageTime.EndMessage();
+								Game.Game.LocalActivity = PlayerControl.LocalPlayer.Data.DefaultOutfit.ColorId == colorIds[0] ? Game.EnumActivity.GameSelect : Game.EnumActivity.Lobby;
+								MessageWriter rpcMessageTime = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)EnumRpc.GameStart, SendOption.Reliable, -1);
+								AmongUsClient.Instance.FinishRpcImmediately(rpcMessageTime);
 							}
 						}
 						break;
 					}
+
 					case EnumRpc.GameStart:
 					{
 						int[] colorIds = (int[])Game.Game.ColorIds.GetValue(Game.Game.AllPlayers.Count - 1);
-						Game.Game.LocalActivity = PlayerControl.LocalPlayer.Data.ColorId == colorIds[0] ? Game.EnumActivity.GameSelect : Game.EnumActivity.Lobby;
+						Game.Game.LocalActivity = PlayerControl.LocalPlayer.Data.DefaultOutfit.ColorId == colorIds[0] ? Game.EnumActivity.GameSelect : Game.EnumActivity.Lobby;
 						break;
 					}
 				}
 			}
 		}
+
 	}
 }

@@ -1,6 +1,9 @@
 ﻿using HarmonyLib;
 using Hazel;
 using System.Collections.Generic;
+using AmongChess.Rpc;
+using AmongUs.GameOptions;
+using Reactor.Localization.Utilities;
 
 namespace AmongChess.Lobby
 {
@@ -9,12 +12,12 @@ namespace AmongChess.Lobby
 		public static List<ClassOption> AllOption = new List<ClassOption>();
 		public static List<ClassOptionGroup> AllOptionGroup = new List<ClassOptionGroup>();
 
-		[HarmonyPatch(typeof(SaveManager))]
-		public static class SaveManagerLoadGameOptionsPatch
+		[HarmonyPatch(typeof(GameOptionsManager))]
+		public static class GameOptionsManagerInitializePatch
 		{
-			[HarmonyPatch(nameof(SaveManager.LoadGameOptions))]
-			[HarmonyPrefix]
-			public static void LoadGameOptionsPatch()
+			[HarmonyPatch(nameof(GameOptionsManager.Initialize))]
+			[HarmonyPostfix]
+			public static void InitializePatch()
 			{
 				AllOptionGroup = OptionGroupDefault();
 				AllOption = Save.GameOptionsImport();
@@ -30,13 +33,13 @@ namespace AmongChess.Lobby
 			{
 				if (PlayerControl.AllPlayerControls.Count > 1 && AmongUsClient.Instance && AmongUsClient.Instance.AmHost)
 				{
-					MessageWriter rpcMessage = AmongUsClient.Instance.StartRpc(PlayerControl.LocalPlayer.NetId, 68, (SendOption)1);
+					MessageWriter rpcMessage = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)EnumRpc.CustomOptions, SendOption.Reliable, -1);
 					for (int i = 0; i < AllOption.Count; i++)
 					{
 						rpcMessage.Write(AllOption[i].Id);
 						rpcMessage.Write(AllOption[i].Value);
 					}
-					rpcMessage.EndMessage();
+					AmongUsClient.Instance.FinishRpcImmediately(rpcMessage);
 				}
 			}
 		}
@@ -94,10 +97,26 @@ namespace AmongChess.Lobby
 		public static void RpcPushDeltaOptions(byte optionId, uint optionValue)
 		{
 			Save.GameOptionsExport();
-			MessageWriter rpcMessage = AmongUsClient.Instance.StartRpc(PlayerControl.LocalPlayer.NetId, 68, (SendOption)1);
+			MessageWriter rpcMessage = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)EnumRpc.CustomOptions, SendOption.Reliable, -1);
 			rpcMessage.Write(optionId);
 			rpcMessage.Write((byte)optionValue);
-			rpcMessage.EndMessage();
+			AmongUsClient.Instance.FinishRpcImmediately(rpcMessage);
+		}
+
+		// Show a toast notification when a custom setting changes (like the vanilla "X changed setting" message)
+		public static void NotifyOptionChanged(ClassOption option)
+		{
+			if (DestroyableSingleton<HudManager>.Instance == null || DestroyableSingleton<HudManager>.Instance.Notifier == null) return;
+			if (option.StringName == (StringNames)0) option.StringName = CustomStringName.CreateAndRegister(option.Name);
+			DestroyableSingleton<HudManager>.Instance.Notifier.AddSettingsChangeMessage(option.StringName, option.AllValues[option.Value], false, RoleTypes.Crewmate);
+
+			// Our custom options never write into GameOptionsManager.CurrentGameOptions, so the vanilla
+			// refresh chain (GameStartManager.CheckSettingsDiffs → LobbyInfoPane.RefreshPane) never fires.
+			// Manually refresh the read-only view page so it shows the updated value right away.
+			if (DestroyableSingleton<LobbyInfoPane>.InstanceExists && DestroyableSingleton<LobbyInfoPane>.Instance != null)
+			{
+				DestroyableSingleton<LobbyInfoPane>.Instance.RefreshPane();
+			}
 		}
 	}
 }

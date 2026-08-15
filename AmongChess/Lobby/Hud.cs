@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace AmongChess.Lobby
 {
-	internal class Hud
+	/*internal class Hud
 	{
 		[HarmonyPatch(typeof(GameOptionsData))]
 		public static class GameOptionsDataPatch
@@ -74,5 +74,5 @@ namespace AmongChess.Lobby
 				return false;
 			}
 		}
-	}
+	}*/
 }

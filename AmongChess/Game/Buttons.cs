@@ -14,9 +14,29 @@ namespace AmongChess.Game
 			public static void Postfix(HudManager __instance)
 			{
 				__instance.MapButton.gameObject.active = false;
+				// The pet button takes over the Use button slot — hide it AND force UseButton visible,
+				// otherwise HudManager keeps re-hiding UseButton when a pet is equipped.
+				if (__instance.PetButton != null) __instance.PetButton.gameObject.active = false;
+				if (__instance.UseButton != null)
+				{
+					__instance.UseButton.gameObject.active = true;
+					// Drive the Use button state every frame. Vanilla's ToggleUseAndPetButton skips
+					// UseButton.SetTarget entirely when the local player has a pet, so relying only on
+					// the SetTarget prefix left the button stuck in its grey/disabled state.
+					UseButtonManagerPatch.UpdateUseButton(__instance.UseButton);
+				}
 			}
 
-			[HarmonyPatch(nameof(HudManager.ShowMap))]
+			[HarmonyPatch(nameof(HudManager.ToggleUseAndPetButton))]
+			[HarmonyPrefix]
+			public static bool ToggleUseAndPetButton(HudManager __instance, IUsable useTarget, bool canPlayNormally, bool canPet)
+			{
+				if (__instance.UseButton != null) __instance.UseButton.gameObject.active = true;
+				if (__instance.PetButton != null) __instance.PetButton.gameObject.active = false;
+				return false;
+			}
+
+			[HarmonyPatch(nameof(HudManager.ToggleMapVisible))]
 			[HarmonyPrefix]
 			public static bool Prefix()
 			{
@@ -24,97 +44,160 @@ namespace AmongChess.Game
 			}
 		}
 
-		[HarmonyPatch(typeof(ReportButtonManager))]
+		[HarmonyPatch(typeof(ReportButton))]
 		public static class ReportButtonManagerPatch
 		{
-			[HarmonyPatch(nameof(ReportButtonManager.SetActive))]
+			[HarmonyPatch(nameof(ReportButton.SetActive))]
 			[HarmonyPrefix]
-			public static bool SetActivePatch(ReportButtonManager __instance)
+			public static bool SetActivePatch(ReportButton __instance)
 			{
 				__instance.gameObject.active = false;
 				return false;
 			}
 		}
 
-		[HarmonyPatch(typeof(UseButtonManager))]
+		[HarmonyPatch(typeof(UseButton))]
 		public static class UseButtonManagerPatch
 		{
 			public static int num = 0;
+			public static EnumActivity lastActivity = (EnumActivity)(-1);
+			public static bool lastEnable = false;
 
-			public static void ActivateButton(UseButtonManager instance)
+			public static void ActivateButton(UseButton instance)
 			{
-				instance.currentButtonShown.text.color = new Color(1f, 1f, 1f, 1f);
-				instance.currentButtonShown.graphic.color = new Color(1f, 1f, 1f, 1f);
+				if (instance == null) return;
+				instance.gameObject.active = true;
+				try
+				{
+					if (instance.UseSettings != null)
+					{
+						for (int i = 0; i < instance.UseSettings.Length; i++)
+						{
+							UseButtonSettings s = instance.UseSettings[i];
+							if (s == null || s.ButtonType != ImageNames.UseButton) continue;
+							if (instance.graphic != null && s.Image != null) instance.graphic.sprite = s.Image;
+							if (instance.buttonLabelText != null)
+							{
+								if (s.FontMaterial != null) instance.buttonLabelText.fontSharedMaterial = s.FontMaterial;
+								instance.buttonLabelText.text = DestroyableSingleton<TranslationController>.Instance.GetString(s.Text, new Il2CppSystem.Object[0]);
+							}
+							break;
+						}
+					}
+				}
+				catch (System.Exception e)
+				{
+					UnityEngine.Debug.LogError("[AmongChess] ActivateButton settings failed: " + e);
+				}
+				instance.SetEnabled();
+				// Belt-and-suspenders: force the icon fully colored/desaturated directly too.
+				if (instance.graphic != null)
+				{
+					instance.graphic.color = Color.white;
+					instance.graphic.material.SetFloat("_Desat", 0f);
+				}
+				if (instance.buttonLabelText != null) instance.buttonLabelText.color = Color.white;
 			}
 
-			public static void DeactivateButton(UseButtonManager instance)
+			public static void DeactivateButton(UseButton instance)
 			{
-				instance.currentButtonShown.text.color = new Color(1f, 1f, 1f, 0.3f);
-				instance.currentButtonShown.graphic.color = new Color(1f, 1f, 1f, 0.3f);
+				if (instance == null) return;
+				instance.SetDisabled();
 			}
 
-			[HarmonyPatch(nameof(UseButtonManager.SetTarget))]
-			[HarmonyPrefix]
-			public static bool SetTarget(UseButtonManager __instance)
+			public static void UpdateUseButton(UseButton instance)
 			{
+				if (instance == null) return;
+				try
+				{
+					if (PlayerControl.LocalPlayer != null && Game.AllPlayers.Count > 0 && Game.PlayerTurn < Game.AllPlayers.Count)
+					{
+						PlayerControl current = Game.AllPlayers[Game.PlayerTurn];
+						EnumActivity act = Game.LocalActivity;
+						if (current != null && current.PlayerId == PlayerControl.LocalPlayer.PlayerId &&
+							act != EnumActivity.GameSelect && act != EnumActivity.GamePlace && act != EnumActivity.GameEnd)
+						{
+							UnityEngine.Debug.Log("[AmongChess] Self-correct activity " + act + " → GameSelect (my turn)");
+							Game.LocalActivity = EnumActivity.GameSelect;
+						}
+					}
+				}
+				catch (System.Exception) { }
+				// Diagnostic: log only when the activity state changes.
+				if (Game.LocalActivity != lastActivity)
+				{
+					lastActivity = Game.LocalActivity;
+					UnityEngine.Debug.Log("[AmongChess] UseButton LocalActivity=" + Game.LocalActivity);
+				}
 				if (Game.LocalActivity == EnumActivity.Lobby)
 				{
-					return true;
+					DeactivateButton(instance);
+					return;
 				}
-				else if (Game.LocalActivity == EnumActivity.GameEnd)
+				if (Game.LocalActivity == EnumActivity.GameEnd)
 				{
-					ActivateButton(__instance);
-					return false;
+					ActivateButton(instance);
+					return;
 				}
 				num++;
 				if (num > 3)
 				{
 					num = 0;
+					lastEnable = false;
 					GameObject piecesObjects = GameObject.Find("PiecesPath");
-					if (piecesObjects == null) return true;
-					ClearAllHighlighted();
-					if (Game.LocalActivity == EnumActivity.GameSelect)
+					if (piecesObjects != null)
 					{
-						int[] colorIds = (int[])Game.ColorIds.GetValue(GameData.Instance.PlayerCount - 1);
-						int colorId = 0;
-						for (int i = 0; i < colorIds.Length; i++) if (colorIds[i] == PlayerControl.LocalPlayer.Data.ColorId) { colorId = i; break; };
-						PlayerControl target = Utils.ClosestPiece(PlayerControl.LocalPlayer, colorId, out float distance);
-						if (distance < 1)
+						ClearAllHighlighted();
+						if (Game.LocalActivity == EnumActivity.GameSelect)
 						{
-							ActivateButton(__instance);
-							SpriteRenderer renderer = target.gameObject.transform.FindChild("Sprite").gameObject.GetComponent<SpriteRenderer>();
-							renderer.GetMaterial().SetFloat("_Outline", 1f);
-							renderer.GetMaterial().SetColor("_OutlineColor", Color.yellow);
+							int[] colorIds = (int[])Game.ColorIds.GetValue(Game.RealPlayerCount - 1);
+							int colorId = 0;
+							if (PlayerControl.LocalPlayer != null && PlayerControl.LocalPlayer.Data != null)
+							{
+								for (int i = 0; i < colorIds.Length; i++) if (colorIds[i] == PlayerControl.LocalPlayer.Data.DefaultOutfit.ColorId) { colorId = i; break; }
+							}
+							PlayerControl target = Utils.ClosestPiece(PlayerControl.LocalPlayer, colorId, out float distance);
+							if (distance < 1 && target != null)
+							{
+								lastEnable = true;
+								Transform spriteTransform = target.gameObject.transform.FindChild("Sprite");
+								if (spriteTransform != null)
+								{
+									SpriteRenderer renderer = spriteTransform.gameObject.GetComponent<SpriteRenderer>();
+									renderer.GetMaterial().SetFloat("_Outline", 1f);
+									renderer.GetMaterial().SetColor("_OutlineColor", Color.yellow);
+								}
+							}
+						}
+						else if (Game.LocalActivity == EnumActivity.GamePlace)
+						{
+							Vent target = Utils.ClosestVent(PlayerControl.LocalPlayer, out float distance);
+							if (distance < 1 && target != null)
+							{
+								lastEnable = true;
+								SpriteRenderer renderer = target.GetComponent<SpriteRenderer>();
+								renderer.GetMaterial().SetFloat("_Outline", 1);
+								renderer.GetMaterial().SetColor("_OutlineColor", Color.yellow);
+							}
 						}
 						else
 						{
-							DeactivateButton(__instance);
+							lastEnable = false;
 						}
-					}
-					else if (Game.LocalActivity == EnumActivity.GamePlace)
-					{
-						Vent target = Utils.ClosestVent(PlayerControl.LocalPlayer, out float distance);
-						if (distance < 1)
-						{
-							ActivateButton(__instance);
-							SpriteRenderer renderer = target.GetComponent<SpriteRenderer>();
-							renderer.GetMaterial().SetFloat("_Outline", 1);
-							renderer.GetMaterial().SetColor("_OutlineColor", Color.yellow);
-						}
-						else
-						{
-							DeactivateButton(__instance);
-						}
-					}
-					else
-					{
-						DeactivateButton(__instance);
 					}
 				}
+				// Apply the visual state every frame from the cached result.
+				if (lastEnable) ActivateButton(instance); else DeactivateButton(instance);
+			}
+
+			[HarmonyPatch(nameof(UseButton.SetTarget))]
+			[HarmonyPrefix]
+			public static bool SetTarget(UseButton __instance)
+			{
 				return false;
 			}
 
-			[HarmonyPatch(nameof(UseButtonManager.DoClick))]
+			[HarmonyPatch(nameof(UseButton.DoClick))]
 			[HarmonyPrefix]
 			public static bool DoClick()
 			{
@@ -149,14 +232,14 @@ namespace AmongChess.Game
 						Utils.RevertMove(playerIndex, oldPlayer);
 						return false;
 					}
-					Chess.EnumResults move = Chess.Chess.MovePiece(pieceCoordinates, targetCoordinates, oldPlayer.gameObject);
+				  Chess.EnumResults move = Chess.Chess.MovePiece(pieceCoordinates, targetCoordinates, oldPlayer.gameObject);
 					if (move == Chess.EnumResults.ErrorInvalid) return false;
 					Utils.RevertClothing(playerIndex);
 					if (Game.TotalTurns % 10 == 0 && Game.TotalTurns > 0) Utils.SynchronizeTime(customPlayer.Timer);
 					Utils.SendCoordinates(pieceCoordinates, targetCoordinates);
-					MessageWriter rpcMessageReturn = AmongUsClient.Instance.StartRpc(PlayerControl.LocalPlayer.NetId, 66, (SendOption)1);
+					MessageWriter rpcMessageReturn = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, 66, (SendOption)1);
 					rpcMessageReturn.Write(localPlayer.PlayerId);
-					rpcMessageReturn.EndMessage();
+					AmongUsClient.Instance.FinishRpcImmediately(rpcMessageReturn);
 					target.GetComponent<SpriteRenderer>().GetMaterial().SetFloat("_Outline", 0);
 					oldPlayer.gameObject.active = true;
 					Utils.AddIncrementTime(playerIndex);
@@ -170,36 +253,45 @@ namespace AmongChess.Game
 				}
 				else if (Game.LocalActivity == EnumActivity.GameSelect)
 				{
-					int[] colorIds = (int[])Game.ColorIds.GetValue(GameData.Instance.PlayerCount - 1);
-					int colorId = 0;
-					for (int i = 0; i < colorIds.Length; i++) if (colorIds[i] == PlayerControl.LocalPlayer.Data.ColorId) { colorId = i; break; };
-					PlayerControl targetPlayer = Utils.ClosestPiece(PlayerControl.LocalPlayer, colorId, out float distance);
-					if (distance > 1) return false;
-					PlayerControl localPlayer = PlayerControl.LocalPlayer;
-					targetPlayer.transform.FindChild("Sprite").GetComponent<SpriteRenderer>().GetMaterial().SetFloat("_Outline", 0);
-					int pieceIndex = Utils.PieceIndex(targetPlayer.name[0]);
-					targetPlayer.gameObject.active = false;
-					localPlayer.transform.position = targetPlayer.transform.position;
-					localPlayer.SetHat(Utils.PieceHats[pieceIndex], localPlayer.Data.ColorId);
-					localPlayer.SetSkin(Utils.PieceSkins[pieceIndex]);
-					localPlayer.SetPet(0u);
-					MessageWriter rpcMessage = AmongUsClient.Instance.StartRpc(PlayerControl.LocalPlayer.NetId, 65, (SendOption)1);
-					rpcMessage.Write(localPlayer.PlayerId);
-					rpcMessage.Write((byte)pieceIndex);
-					rpcMessage.EndMessage();
-					targetPlayer.name = "t" + targetPlayer.name;
-					Game.LocalActivity = EnumActivity.GamePlace;
+					try
+					{
+						if (PlayerControl.LocalPlayer == null || PlayerControl.LocalPlayer.Data == null) return false;
+						int[] colorIds = (int[])Game.ColorIds.GetValue(Game.RealPlayerCount - 1);
+						int colorId = 0;
+						for (int i = 0; i < colorIds.Length; i++) if (colorIds[i] == PlayerControl.LocalPlayer.Data.DefaultOutfit.ColorId) { colorId = i; break; }
+						PlayerControl targetPlayer = Utils.ClosestPiece(PlayerControl.LocalPlayer, colorId, out float distance);
+						if (distance > 1 || targetPlayer == null) return false;
+						PlayerControl localPlayer = PlayerControl.LocalPlayer;
+						Transform sprite = targetPlayer.transform.FindChild("Sprite");
+						if (sprite != null) sprite.GetComponent<SpriteRenderer>().GetMaterial().SetFloat("_Outline", 0);
+						int pieceIndex = Utils.PieceIndex(targetPlayer.name[0]);
+						targetPlayer.gameObject.active = false;
+						localPlayer.transform.position = targetPlayer.transform.position;
+						localPlayer.SetHat(Utils.PieceHats[pieceIndex].ToString(), localPlayer.Data.DefaultOutfit.ColorId);
+						localPlayer.SetSkin(Utils.PieceSkins[pieceIndex].ToString(), localPlayer.Data.DefaultOutfit.ColorId);
+						localPlayer.SetPet("");
+						MessageWriter rpcMessage = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, 65, (SendOption)1);
+						rpcMessage.Write(localPlayer.PlayerId);
+						rpcMessage.Write((byte)pieceIndex);
+						AmongUsClient.Instance.FinishRpcImmediately(rpcMessage);
+						targetPlayer.name = "t" + targetPlayer.name;
+						Game.LocalActivity = EnumActivity.GamePlace;
+					}
+					catch (System.Exception e)
+					{
+						UnityEngine.Debug.LogError("[AmongChess] DoClick GameSelect failed: " + e);
+					}
 				}
 				else if (Game.LocalActivity == EnumActivity.GameEnd)
 				{
 					if (AmongUsClient.Instance.AmHost)
 					{
-						ShipStatus.RpcEndGame(GameOverReason.ImpostorByVote, false);
+						GameManager.Instance.RpcEndGame(GameOverReason.ImpostorsByVote, false);
 					}
 					else
 					{
-						MessageWriter rpcMessage = AmongUsClient.Instance.StartRpc(PlayerControl.LocalPlayer.NetId, 69, (SendOption)1);
-						rpcMessage.EndMessage();
+						MessageWriter rpcMessage = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, 69, (SendOption)1);
+						AmongUsClient.Instance.FinishRpcImmediately(rpcMessage);
 					}
 				}
 				else if (Game.LocalActivity == EnumActivity.GameWaiting)
@@ -213,18 +305,25 @@ namespace AmongChess.Game
 		public static void ClearAllHighlighted()
 		{
 			GameObject piecesObjects = GameObject.Find("PiecesPath");
-			for (int i = 0; i < piecesObjects.transform.childCount; i++)
+			if (piecesObjects != null)
 			{
-				GameObject elementObject = piecesObjects.transform.GetChild(i).FindChild("Sprite").gameObject;
-				SpriteRenderer renderer = elementObject.GetComponent<SpriteRenderer>();
-				renderer.GetMaterial().SetFloat("_Outline", 0f);
+				for (int i = 0; i < piecesObjects.transform.childCount; i++)
+				{
+					Transform sprite = piecesObjects.transform.GetChild(i).FindChild("Sprite");
+					if (sprite == null) continue;
+					SpriteRenderer renderer = sprite.GetComponent<SpriteRenderer>();
+					renderer.GetMaterial().SetFloat("_Outline", 0f);
+				}
 			}
 			GameObject ventObjects = GameObject.Find("VentPath");
-			for (int i = 0; i < ventObjects.transform.childCount; i++)
+			if (ventObjects != null)
 			{
-				GameObject elementObject = ventObjects.transform.GetChild(i).gameObject;
-				SpriteRenderer renderer = elementObject.GetComponent<SpriteRenderer>();
-				renderer.GetMaterial().SetFloat("_Outline", 0f);
+				for (int i = 0; i < ventObjects.transform.childCount; i++)
+				{
+					GameObject elementObject = ventObjects.transform.GetChild(i).gameObject;
+					SpriteRenderer renderer = elementObject.GetComponent<SpriteRenderer>();
+					renderer.GetMaterial().SetFloat("_Outline", 0f);
+				}
 			}
 		}
 	}

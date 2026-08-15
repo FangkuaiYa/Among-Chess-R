@@ -3,9 +3,9 @@
 	public class CustomPlayer
 	{
 		public byte PlayerId;
-		public uint HatId;
-		public uint SkinId;
-		public uint PetId;
+		public string HatId;
+		public string SkinId;
+		public string PetId;
 		public int ColorId;
 		public float Timer;
 		public bool Loaded = false;

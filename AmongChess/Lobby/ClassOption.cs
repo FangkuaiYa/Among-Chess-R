@@ -9,6 +9,7 @@
 		public string Suffix = "";
 		public (byte Id, byte[] Values) Exemption;
 		public byte GroupId = byte.MaxValue;
+		public StringNames StringName; // custom StringNames for the option name (used for change notifications)
 	}
 
 	public class ClassOptionGroup

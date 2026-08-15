@@ -2,7 +2,7 @@
 {
 	internal enum EnumRpc
 	{
-		MovePiece = 64,
+		MovePiece = 100,
 		SelectPiece,
 		ReturnPiece,
 		GameResult,

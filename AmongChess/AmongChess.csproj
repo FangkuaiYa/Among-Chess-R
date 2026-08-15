@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <Version>1.1.1</Version>
     <Description>Chess plugin for Among Us</Description>
     <Authors>KyleSmith</Authors>
@@ -13,6 +13,7 @@
     <SignAssembly>false</SignAssembly>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <OutputType>Library</OutputType>
+    <DebugType>embedded</DebugType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <Optimize>true</Optimize>
@@ -22,21 +23,17 @@
     <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll" DestinationFiles="$(AmongUs)/BepInEx/plugins/$(AssemblyName)-$(Version).dll" />
   </Target>
 
-  <ItemGroup>
-    <Reference Include="$(AmongUs)\BepInEx\core\*.dll">
-      <Private>false</Private>
-    </Reference>
+	<ItemGroup>
+		<PackageReference Include="AmongUs.GameLibs.Steam" Version="2026.6.5" />
+		<PackageReference Include="BepInEx.IL2CPP.MSBuild" Version="2.1.0-rc.1">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="BepInEx.Unity.IL2CPP" Version="6.0.0-be.735" />
+		<PackageReference Include="Reactor" Version="2.5.1-ci.384" />
+	</ItemGroup>
 
-    <Reference Include="$(AmongUs)\BepInEx\unhollowed\*.dll">
-      <Private>false</Private>
-    </Reference>
-
-    <Reference Remove="$(AmongUs)\BepInEx\unhollowed\netstandard.dll;$(AmongUs)\BepInEx\unhollowed\Newtonsoft.Json.dll" />
-
-    <Reference Include="$(AmongUs)\BepInEx\plugins\Reactor.dll" />
-  </ItemGroup>
-
-  <ItemGroup>
+	<ItemGroup>
     <None Include="..\Images\Icon.png">
       <Pack>True</Pack>
       <PackagePath></PackagePath>

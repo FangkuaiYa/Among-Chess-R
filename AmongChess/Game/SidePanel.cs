@@ -37,7 +37,7 @@ namespace AmongChess.Game
 				results += GameOptionHudLayer1("Total Moves", Game.TotalTurns.ToString());
 				results = "<line-height=2>" + results + "</line-height>";
 				results = "<size=2>" + results + "</size>";
-				__instance.TaskText.text = results;
+				__instance.taskText.text = results;
 				return false;
 			}
 

@@ -40,7 +40,7 @@ namespace AmongChess.TestCases
 
 		public static void ActivateTests()
 		{
-			Debug.logger.Log(" - - - - - ACTIVATING TESTS - - - - - ");
+			Debug.Log(" - - - - - ACTIVATING TESTS - - - - - ");
 			int correct = 0;
 			List<bool> allCases = TestCases();
 			if (allCases.Count == 0)
@@ -52,16 +52,16 @@ namespace AmongChess.TestCases
 				if (!allCases[i])
 				{
 					correct++;
-					Debug.logger.Log("Test Case " + i.ToString() + ": TEST CASE FAILED !!! " + i.ToString());
+					Debug.Log("Test Case " + i.ToString() + ": TEST CASE FAILED !!! " + i.ToString());
 				}
 				else
 				{
-					Debug.logger.Log("Test Case " + i.ToString() + ": Test Case Working");
+					Debug.Log("Test Case " + i.ToString() + ": Test Case Working");
 				}
 			}
 			float percentage = (float)(allCases.Count - correct) / allCases.Count;
-			Debug.logger.Log("Percentage of test cases working: " + (percentage * 100f).ToString("0") + "%");
-			Debug.logger.Log(" - - - - - TESTS COMPLETED - - - - - ");
+			Debug.Log("Percentage of test cases working: " + (percentage * 100f).ToString("0") + "%");
+			Debug.Log(" - - - - - TESTS COMPLETED - - - - - ");
 		}
 
 		public static List<bool> TestCases()
