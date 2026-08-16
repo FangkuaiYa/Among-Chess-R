@@ -1,4 +1,3 @@
-<!-[![Discord](https://img.shields.io/discord/858193450506911804.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2)](https://discord.gg/bbuTGdaSyr)->
 [![Github Downloads](https://img.shields.io/github/downloads/FangkuaiYa/Among-Chess-R/total.svg)](https://github.com/FangkuaiYa/Among-Chess-R/releases)
 [![GitHub release](https://img.shields.io/github/release/FangkuaiYa/Among-Chess-R.svg)](https://GitHub.com/FangkuaiYa/Among-Chess/releases/)
 
