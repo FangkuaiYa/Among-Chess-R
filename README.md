@@ -1,9 +1,6 @@
 [![Github Downloads](https://img.shields.io/github/downloads/FangkuaiYa/Among-Chess-R/total.svg)](https://github.com/FangkuaiYa/Among-Chess-R/releases)
 [![GitHub release](https://img.shields.io/github/release/FangkuaiYa/Among-Chess-R.svg)](https://GitHub.com/FangkuaiYa/Among-Chess/releases/)
 
-
-Join our **community Discord**: https://discord.gg/SSDVCHPbrg
-
 ![Among Chess Logo](https://github.com/FangkuaiYa/Among-Chess-R/blob/master/Images/Logo-3D-Faded.png "Among Chess")
 
 ---
