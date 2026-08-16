@@ -123,6 +123,31 @@ namespace AmongChess.Chess
 			return true;
 		}
 
+		// Insufficient material: only the two kings remain (or one king + a single minor piece),
+		// so checkmate is impossible → draw by insufficient material.
+		public static bool IsInsufficientMaterial(char[,] chessBoard)
+		{
+			int minorPieces = 0;
+			for (int y = 0; y < chessBoard.GetLength(0); y++)
+			{
+				for (int x = 0; x < chessBoard.GetLength(1); x++)
+				{
+					char piece = Utils.ReadablePiece(chessBoard[y, x]);
+					if (piece == '1' || char.ToUpper(piece) == 'K') continue;
+					char p = char.ToUpper(piece);
+					if (p == 'N' || p == 'B')
+					{
+						minorPieces++;
+						continue;
+					}
+					// Pawn / Rook / Queen still on board → mating material exists.
+					return false;
+				}
+			}
+			// Draw if no material (K vs K) or only a single minor piece (K vs K+B / K vs K+N).
+			return minorPieces <= 1;
+		}
+
 		public static bool CanMove((int x, int y) coordinates, (int x, int y) kingCoordinates, char[,] chessBoard)
 		{
 			bool pieceMove = false;

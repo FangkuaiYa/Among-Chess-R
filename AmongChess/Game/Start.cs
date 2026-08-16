@@ -1,12 +1,12 @@
 ﻿using HarmonyLib;
 using Hazel;
-using TMPro;
 using UnityEngine;
-using InnerNet;
 using AmongUs.Data;
 using AmongChess.Rpc;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
+using BepInEx.Unity.IL2CPP.Utils.Collections;
 
 namespace AmongChess.Game
 {
@@ -102,29 +102,68 @@ namespace AmongChess.Game
 				}
 			}
 
-			[HarmonyPatch(typeof(IntroCutscene._ShowRole_d__41), nameof(IntroCutscene._ShowRole_d__41.MoveNext))]
-			[HarmonyPostfix]
-			public static void ShowRolePatch(IntroCutscene._ShowRole_d__41 __instance)
+			[HarmonyPatch(typeof(IntroCutscene), nameof(IntroCutscene.CoBegin))]
+			[HarmonyPrefix]
+			public static bool CoBeginPatch(IntroCutscene __instance, ref Il2CppSystem.Collections.IEnumerator __result)
 			{
-				if (__instance.__4__this == null || __instance.__4__this.RoleText == null) return;
-				try
+				__result = CustomCoBegin(__instance).WrapToIl2Cpp();
+				return false;
+			}
+
+			private static System.Collections.IEnumerator CustomCoBegin(IntroCutscene __instance)
+			{
+				SoundManager.Instance.PlaySound(__instance.IntroStinger, false, 1f, null);
+				if (GameManager.Instance.IsNormal())
 				{
-					int playerCount = Game.RealPlayerCount > 0 ? Game.RealPlayerCount : 1;
-					int[] colorIds = (int[])Game.ColorIds.GetValue(playerCount - 1);
-					int index = -1;
-					if (PlayerControl.LocalPlayer != null)
+					__instance.HideAndSeekPanels.SetActive(false);
+					__instance.CrewmateRules.SetActive(false);
+					__instance.ImpostorRules.SetActive(false);
+					__instance.ImpostorName.gameObject.SetActive(false);
+					__instance.ImpostorTitle.gameObject.SetActive(false);
+					// Rebuild the team list ourselves (SelectTeamToShow takes Il2CppSystem.Func/List
+					// which are awkward to call from C#): local player first, then every real,
+					// connected player. Our games are pure crewmate so every real player is shown.
+					Il2CppSystem.Collections.Generic.List<PlayerControl> teamToShow = new Il2CppSystem.Collections.Generic.List<PlayerControl>();
+					PlayerControl localPlayer = PlayerControl.LocalPlayer;
+					if (localPlayer != null && localPlayer.Data != null) teamToShow.Add(localPlayer);
+					foreach (PlayerControl pc in PlayerControl.AllPlayerControls)
 					{
-						for (int i = 0; i < Game.AllPlayers.Count; i++)
-						{
-							if (Game.AllPlayers[i].PlayerId == PlayerControl.LocalPlayer.PlayerId) { index = i; break; }
-						}
+						if (pc == null || pc == localPlayer || pc.isDummy || pc.Data == null || pc.Data.Disconnected) continue;
+						teamToShow.Add(pc);
 					}
-					if (index < 0) index = 0;
-					bool isWhite = index == 0;
-					__instance.__4__this.RoleText.text = isWhite ? "WHITE" : "BLACK";
-					__instance.__4__this.RoleText.color = Color.white;
+					if (teamToShow.Count < 1)
+					{
+						UnityEngine.Debug.LogError("[AmongChess] Intro teamToShow is EMPTY or NULL");
+					}
+					if (PlayerControl.LocalPlayer.Data.Role.IsImpostor)
+					{
+						__instance.ImpostorText.gameObject.SetActive(false);
+					}
+					else
+					{
+						int adjustedNumImpostors = GameManager.Instance.LogicOptions.GetAdjustedNumImpostors(GameData.Instance.PlayerCount);
+						if (adjustedNumImpostors == 1)
+						{
+							__instance.ImpostorText.text = DestroyableSingleton<TranslationController>.Instance.GetString(StringNames.NumImpostorsS, new Il2CppSystem.Object[0]);
+						}
+						else
+						{
+							__instance.ImpostorText.text = DestroyableSingleton<TranslationController>.Instance.GetString(StringNames.NumImpostorsP, new Il2CppSystem.Object[] { adjustedNumImpostors });
+						}
+						__instance.ImpostorText.text = __instance.ImpostorText.text.Replace("[FF1919FF]", "<color=#FF1919FF>");
+						__instance.ImpostorText.text = __instance.ImpostorText.text.Replace("[]", "</color>");
+					}
+					yield return __instance.ShowTeam(teamToShow, 3f);
+					// ShowRole intentionally skipped
 				}
-				catch (System.Exception) { }
+				else
+				{
+					// Hide and Seek is not supported by Among Chess — finish the intro immediately.
+					yield return null;
+				}
+				ShipStatus.Instance.StartSFX();
+				UnityEngine.Object.Destroy(__instance.gameObject);
+				yield break;
 			}
 		}
 
@@ -133,6 +172,8 @@ namespace AmongChess.Game
 		{
 			public static void Postfix()
 			{
+				// Keep the chat visible during the chess game so players can talk.
+				if (HudManager.Instance != null && HudManager.Instance.Chat != null) HudManager.Instance.Chat.SetVisible(true);
 				HudManager.Instance.ShowTaskComplete();
 				Game.PieceCoords.Clear();
 				string shipDirectory = "PolusShip(Clone)/";

@@ -144,6 +144,7 @@ namespace AmongChess.Chess
 				Game.Game.PlayMove(fromObject, toCoordinates, howMove);
 			}
 			ChessBoard = tempChessBoard;
+			if (Validation.IsInsufficientMaterial(tempChessBoard)) return EnumResults.DrawMaterial;
 			if (Validation.IsInCheckmate(theirKingCoordinates, tempChessBoard) == 'n') return EnumResults.WinCheckmate;
 			else if (theirKingChecks.Count == 0 && Validation.IsInStalemate(theirKingCoordinates, tempChessBoard)) return EnumResults.DrawStalemate;
 			return EnumResults.MoveNormal;

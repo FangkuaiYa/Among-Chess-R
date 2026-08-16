@@ -24,24 +24,26 @@ namespace AmongChess.Lobby
 			}
 		}
 
-		[HarmonyPatch(typeof(PlayerControl))]
-		private class PlayerControlPatch
+		// Vanilla RpcSyncSettings can be unreliable, so instead sync the chess options whenever a
+		// player's CoSpawnPlayer coroutine runs (the host broadcasts the settings to all clients).
+		[HarmonyPatch(typeof(PlayerPhysics._CoSpawnPlayer_d__42), "MoveNext")]
+		[HarmonyPostfix]
+		public static void CoSpawnPlayerPatch()
 		{
-			[HarmonyPatch(nameof(PlayerControl.RpcSyncSettings))]
-			[HarmonyPostfix]
-			public static void RpcSyncSettingsPatch()
+			SyncOptions();
+		}
+
+		public static void SyncOptions()
+		{
+			if (!AmongUsClient.Instance || !AmongUsClient.Instance.AmHost) return;
+			if (PlayerControl.LocalPlayer == null || PlayerControl.AllPlayerControls.Count <= 1) return;
+			MessageWriter rpcMessage = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)EnumRpc.CustomOptions, SendOption.Reliable, -1);
+			for (int i = 0; i < AllOption.Count; i++)
 			{
-				if (PlayerControl.AllPlayerControls.Count > 1 && AmongUsClient.Instance && AmongUsClient.Instance.AmHost)
-				{
-					MessageWriter rpcMessage = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)EnumRpc.CustomOptions, SendOption.Reliable, -1);
-					for (int i = 0; i < AllOption.Count; i++)
-					{
-						rpcMessage.Write(AllOption[i].Id);
-						rpcMessage.Write(AllOption[i].Value);
-					}
-					AmongUsClient.Instance.FinishRpcImmediately(rpcMessage);
-				}
+				rpcMessage.Write(AllOption[i].Id);
+				rpcMessage.Write(AllOption[i].Value);
 			}
+			AmongUsClient.Instance.FinishRpcImmediately(rpcMessage);
 		}
 
 		public static List<ClassOption> OptionDefault()

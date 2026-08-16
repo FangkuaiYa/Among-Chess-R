@@ -66,31 +66,51 @@ namespace AmongChess.TestCases
 
 		public static List<bool> TestCases()
 		{
-			List<bool> allCases = new List<bool> { };
-/* 0*/allCases.Add(Chess.Validation.IsInCheckmate((1, 1), Examples.ChessBoards[0]) == 'n');
-/* 1*/allCases.Add(Chess.Validation.IsInCheckmate((1, 1), Examples.ChessBoards[1]) == 'e');
-/* 2*/allCases.Add(Chess.Validation.IsInCheckmate((1, 0), Examples.ChessBoards[2]) == 'b');
-/* 3*/allCases.Add(Chess.Validation.IsInCheckmate((1, 0), Examples.ChessBoards[3]) == 'n');
-/* 4*/allCases.Add(Chess.Validation.IsInCheckmate((1, 0), Examples.ChessBoards[4]) == 'c');
-/* 5*/allCases.Add(Chess.Validation.IsInCheckmate((2, 0), Examples.ChessBoards[5]) == 'n');
-/* 6*/allCases.Add(Chess.Validation.IsInStalemate((2, 2), Examples.ChessBoards[6]));
-/* 7*/allCases.Add(Chess.Validation.AllCheck((3, 3), Examples.ChessBoards[7]).Count == 6);
-/* 8*/allCases.Add(Chess.Validation.AllCheck((2, 2), Examples.ChessBoards[8]).Count == 0);
+			List<bool> allCases = new List<bool>
+			{
+				/* 0*/
+				Chess.Validation.IsInCheckmate((1, 1), Examples.ChessBoards[0]) == 'n',
+				/* 1*/
+				Chess.Validation.IsInCheckmate((1, 1), Examples.ChessBoards[1]) == 'e',
+				/* 2*/
+				Chess.Validation.IsInCheckmate((1, 0), Examples.ChessBoards[2]) == 'b',
+				/* 3*/
+				Chess.Validation.IsInCheckmate((1, 0), Examples.ChessBoards[3]) == 'n',
+				/* 4*/
+				Chess.Validation.IsInCheckmate((1, 0), Examples.ChessBoards[4]) == 'c',
+				/* 5*/
+				Chess.Validation.IsInCheckmate((2, 0), Examples.ChessBoards[5]) == 'n',
+				/* 6*/
+				Chess.Validation.IsInStalemate((2, 2), Examples.ChessBoards[6]),
+				/* 7*/
+				Chess.Validation.AllCheck((3, 3), Examples.ChessBoards[7]).Count == 6,
+				/* 8*/
+				Chess.Validation.AllCheck((2, 2), Examples.ChessBoards[8]).Count == 0
+			};
 			Chess.Chess.ChessBoard = Examples.ChessBoards[9];
-/* 9*/allCases.Add(Chess.Utils.GetHowMove((0, 3), (1, 2)) == Chess.EnumMoves.EnPassant);
-/*10*/allCases.Add(Chess.Utils.GetHowMove((4, 4), (3, 5)) == Chess.EnumMoves.EnPassant);
+			/* 9*/
+			allCases.Add(Chess.Utils.GetHowMove((0, 3), (1, 2)) == Chess.EnumMoves.EnPassant);
+			/*10*/
+			allCases.Add(Chess.Utils.GetHowMove((4, 4), (3, 5)) == Chess.EnumMoves.EnPassant);
 			Chess.Chess.ChessBoard = Examples.ChessBoards[10];
-/*11*/allCases.Add(Chess.Utils.GetHowMove((2, 1), (2, 0)) == Chess.EnumMoves.Promotion);
-/*12*/allCases.Add(Chess.Utils.GetHowMove((4, 6), (4, 7)) == Chess.EnumMoves.Promotion);
-/*13*/allCases.Add(Chess.Utils.KingFinder(true, Examples.ChessBoards[11]) == (7, 7));
-/*14*/allCases.Add(Chess.Utils.KingFinder(false, Examples.ChessBoards[11]) == (0, 0));
-/*15*/allCases.Add(Chess.Utils.KingFinder(true, Examples.ChessBoards[12]) == (-1, -1));
-/*16*/allCases.Add(Chess.Utils.KingFinder(false, Examples.ChessBoards[12]) == (-1, -1));
-/*17*/allCases.Add(CompareArrays(Chess.Chess.ChessAging(Examples.ChessBoards[13]), Examples.ChessBoards[14]));
+			/*11*/
+			allCases.Add(Chess.Utils.GetHowMove((2, 1), (2, 0)) == Chess.EnumMoves.Promotion);
+			/*12*/
+			allCases.Add(Chess.Utils.GetHowMove((4, 6), (4, 7)) == Chess.EnumMoves.Promotion);
+			/*13*/
+			allCases.Add(Chess.Utils.KingFinder(true, Examples.ChessBoards[11]) == (7, 7));
+			/*14*/
+			allCases.Add(Chess.Utils.KingFinder(false, Examples.ChessBoards[11]) == (0, 0));
+			/*15*/
+			allCases.Add(Chess.Utils.KingFinder(true, Examples.ChessBoards[12]) == (-1, -1));
+			/*16*/
+			allCases.Add(Chess.Utils.KingFinder(false, Examples.ChessBoards[12]) == (-1, -1));
+			/*17*/
+			allCases.Add(CompareArrays(Chess.Chess.ChessAging(Examples.ChessBoards[13]), Examples.ChessBoards[14]));
 			return allCases;
 		}
 
-		public static bool CompareArrays (char[,] array1, char[,] array2)
+		public static bool CompareArrays(char[,] array1, char[,] array2)
 		{
 			return array1.Rank == array2.Rank && Enumerable.Range(0, array1.Rank).All(dimension => array1.GetLength(dimension) == array2.GetLength(dimension)) && array1.Cast<char>().SequenceEqual(array2.Cast<char>());
 		}

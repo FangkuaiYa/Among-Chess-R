@@ -206,6 +206,7 @@ namespace AmongChess.Game
 
 			Buttons.ClearAllHighlighted();
 			End.WinnerId = (int)results < 16 ? -1 : winnerId;
+			End.Result = results;
 		}
 
 		public static void PlayMove(GameObject fromObject, (int x, int y) toCoordinates, GameObject toObject, Chess.EnumMoves howMove, int captures)
