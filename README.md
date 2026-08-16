@@ -80,7 +80,7 @@ If you have any feedback regarding the game, this may include:
 - Support
 - Inquiries
 
-Please contact the current creator by messaging him on Discord (FiNS Flexin#6193) or by joining the [Among Chess Discord server](https://discord.gg/SSDVCHPbrg "Among Chess Community Discord Server"). The mod creator cannot be bothered and is always happy to respond to any feedback.
+Please contact the current creator by messaging him on 2683748223@qq.com The mod creator cannot be bothered and is always happy to respond to any feedback.
 
 ---
 # Credit
