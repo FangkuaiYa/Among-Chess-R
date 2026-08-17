@@ -237,7 +237,7 @@ namespace AmongChess.Game
 					Utils.RevertClothing(playerIndex);
 					if (Game.TotalTurns % 10 == 0 && Game.TotalTurns > 0) Utils.SynchronizeTime(customPlayer.Timer);
 					Utils.SendCoordinates(pieceCoordinates, targetCoordinates);
-					MessageWriter rpcMessageReturn = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, 66, (SendOption)1);
+					MessageWriter rpcMessageReturn = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)Rpc.EnumRpc.ReturnPiece, (SendOption)1);
 					rpcMessageReturn.Write(localPlayer.PlayerId);
 					AmongUsClient.Instance.FinishRpcImmediately(rpcMessageReturn);
 					target.GetComponent<SpriteRenderer>().GetMaterial().SetFloat("_Outline", 0);
@@ -270,7 +270,7 @@ namespace AmongChess.Game
 						localPlayer.SetHat(Utils.PieceHats[pieceIndex].ToString(), localPlayer.Data.DefaultOutfit.ColorId);
 						localPlayer.SetSkin(Utils.PieceSkins[pieceIndex].ToString(), localPlayer.Data.DefaultOutfit.ColorId);
 						localPlayer.SetPet("");
-						MessageWriter rpcMessage = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, 65, (SendOption)1);
+						MessageWriter rpcMessage = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)Rpc.EnumRpc.SelectPiece, (SendOption)1);
 						rpcMessage.Write(localPlayer.PlayerId);
 						rpcMessage.Write((byte)pieceIndex);
 						AmongUsClient.Instance.FinishRpcImmediately(rpcMessage);
@@ -290,7 +290,7 @@ namespace AmongChess.Game
 					}
 					else
 					{
-						MessageWriter rpcMessage = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, 69, (SendOption)1);
+						MessageWriter rpcMessage = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)Rpc.EnumRpc.GameEnd, (SendOption)1);
 						AmongUsClient.Instance.FinishRpcImmediately(rpcMessage);
 					}
 				}
