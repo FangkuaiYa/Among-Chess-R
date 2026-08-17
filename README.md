@@ -1,32 +1,28 @@
-[![Discord](https://img.shields.io/discord/858193450506911804.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2)](https://discord.gg/bbuTGdaSyr)
-[![Github Downloads](https://img.shields.io/github/downloads/KyleSmith0905/Among-Chess/total.svg)](https://github.com/KyleSmith0905/Among-Chess/releases)
-[![GitHub release](https://img.shields.io/github/release/KyleSmith0905/Among-Chess.svg)](https://GitHub.com/KyleSmith0905/Among-Chess/releases/)
+[![Github Downloads](https://img.shields.io/github/downloads/FangkuaiYa/Among-Chess-R/total.svg)](https://github.com/FangkuaiYa/Among-Chess-R/releases)
+[![GitHub release](https://img.shields.io/github/release/FangkuaiYa/Among-Chess-R.svg)](https://GitHub.com/FangkuaiYa/Among-Chess/releases/)
 
-
-Join our **community Discord**: https://discord.gg/SSDVCHPbrg
-
-![Among Chess Logo](https://github.com/KyleSmith0905/Among-Chess/blob/master/Images/Logo-3D-Faded.png "Among Chess")
+![Among Chess Logo](https://github.com/FangkuaiYa/Among-Chess-R/blob/master/Images/Logo-3D-Faded.png "Among Chess")
 
 ---
 # Table of Contents
-1. [About](https://github.com/KyleSmith0905/Among-Chess/README.md#About "About Section")
-2. [Disclaimer](https://github.com/KyleSmith0905/Among-Chess/README.md#Disclaimer "Disclaimer Section")
-3. [Installation](https://github.com/KyleSmith0905/Among-Chess/README.md#Installation "Installation Section")
-4. [Feedback](https://github.com/KyleSmith0905/Among-Chess/README.md#Feedback "Feedback Section")
-5. [Credit](https://github.com/KyleSmith0905/Among-Chess/README.md#Credit "Credit Section")
-6. [Settings](https://github.com/KyleSmith0905/Among-Chess/README.md#Settings "Settings Section")
-    1. [Game Modes](https://github.com/KyleSmith0905/Among-Chess/README.md#Game-Modes "Game Modes Subsection")
-    2. [Variation](https://github.com/KyleSmith0905/Among-Chess/README.md#Variation "Variation Subsection")
-    3. [Board](https://github.com/KyleSmith0905/Among-Chess/README.md#Board "Variation Subsection")
-    4. [Main Time](https://github.com/KyleSmith0905/Among-Chess/README.md#Main-Time "Main Time Subsection")
-    5. [Increment Time](https://github.com/KyleSmith0905/Among-Chess/README.md#Increment-Time "Increment Time Subsection")
+1. [About](https://github.com/FangkuaiYa/Among-Chess-R/README.md#About "About Section")
+2. [Disclaimer](https://github.com/FangkuaiYa/Among-Chess-R/README.md#Disclaimer "Disclaimer Section")
+3. [Installation](https://github.com/FangkuaiYa/Among-Chess-R/README.md#Installation "Installation Section")
+4. [Feedback](https://github.com/FangkuaiYa/Among-Chess-R/README.md#Feedback "Feedback Section")
+5. [Credit](https://github.com/FangkuaiYa/Among-Chess-R/README.md#Credit "Credit Section")
+6. [Settings](https://github.com/FangkuaiYa/Among-Chess-R/README.md#Settings "Settings Section")
+    1. [Game Modes](https://github.com/FangkuaiYa/Among-Chess-R/README.md#Game-Modes "Game Modes Subsection")
+    2. [Variation](https://github.com/FangkuaiYa/Among-Chess-R/README.md#Variation "Variation Subsection")
+    3. [Board](https://github.com/FangkuaiYa/Among-Chess-R/README.md#Board "Variation Subsection")
+    4. [Main Time](https://github.com/FangkuaiYa/Among-Chess-R/README.md#Main-Time "Main Time Subsection")
+    5. [Increment Time](https://github.com/FangkuaiYa/Among-Chess-R/README.md#Increment-Time "Increment Time Subsection")
 
 ---
 # About
 Among Chess is an Among Us mod for playing chess. In the in-game settings there are various variants, boards, and time controls you may play with. All traditional rules of chess applies to Among Chess.\
 For a fun 1 minute trailer, click [this link](https://www.youtube.com/watch?v=44SC-SNaBDg).
 
-![Among Chess Gameplay](https://github.com/KyleSmith0905/Among-Chess/blob/master/Images/Gameplay-Board.png "Among Chess Gameplay")
+![Among Chess Gameplay](https://github.com/FangkuaiYa/Among-Chess-R/blob/master/Images/Gameplay-Board.png "Among Chess Gameplay")
 
 ---
 # Disclaimer
@@ -43,9 +39,9 @@ The mod can be downloaded two different ways. By directly downloading the mod wh
 
 | Mod Version| Among Us Version| Download|
 |:---|:---|:---:|
-| *Latest*|   | [Link](https://github.com/KyleSmith0905/Among-Chess/releases/latest "Latest Version")||
-| 1.1.1| 2021.6.30| [Link](https://github.com/KyleSmith0905/Among-Chess/releases/tag/v1.1.1 "Version 1.1.1")|
-| 1.0.3| 2021.6.15| [Link](https://github.com/KyleSmith0905/Among-Chess/releases/tag/v1.0.3 "Version 1.0.3")|
+| *Latest*(1.2.0-17.4)|   | [Link](https://github.com/FangkuaiYa/Among-Chess-R/releases/latest "Latest Version")||
+| 1.1.1| 2021.6.30| [Link](https://github.com/FangkuaiYa/Among-Chess-R/releases/tag/v1.1.1 "Version 1.1.1")|
+| 1.0.3| 2021.6.15| [Link](https://github.com/FangkuaiYa/Among-Chess-R/releases/tag/v1.0.3 "Version 1.0.3")|
 
 For a visual guide, view [this tutorial](https://www.youtube.com/watch?v=JCvxKicRfB4) made by *DaNOOB*.
 
@@ -84,7 +80,7 @@ If you have any feedback regarding the game, this may include:
 - Support
 - Inquiries
 
-Please contact the current creator by messaging him on Discord (FiNS Flexin#6193) or by joining the [Among Chess Discord server](https://discord.gg/SSDVCHPbrg "Among Chess Community Discord Server"). The mod creator cannot be bothered and is always happy to respond to any feedback.
+Please contact the current creator by messaging him on 2683748223@qq.com The mod creator cannot be bothered and is always happy to respond to any feedback.
 
 ---
 # Credit
