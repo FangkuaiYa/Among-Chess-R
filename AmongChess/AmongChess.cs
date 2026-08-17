@@ -20,7 +20,7 @@ namespace AmongChess
 	[ReactorModFlags(Reactor.Networking.ModFlags.RequireOnAllClients)]
 	public class AmongChess : BasePlugin
 	{
-		public const string version = "v1.2.0";
+		public const string version = "v1.2.1";
 
 		public Harmony Harmony = new Harmony("kylesmith0905.amongchess");
 
