@@ -13,7 +13,6 @@
     <SignAssembly>false</SignAssembly>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <OutputType>Library</OutputType>
-    <DebugType>embedded</DebugType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <Optimize>true</Optimize>
