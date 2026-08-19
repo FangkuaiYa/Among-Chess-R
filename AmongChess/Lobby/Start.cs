@@ -50,7 +50,7 @@ namespace AmongChess.Lobby
 				}
 			}
 
-			private static void ApplyChessOptions(NormalGameOptionsV10 options)
+			private static void ApplyChessOptions(NormalGameOptionsV11 options)
 			{
 				if (options == null) return;
 				options.SetInt(Int32OptionNames.MaxPlayers, 2);

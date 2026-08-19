@@ -173,7 +173,11 @@ namespace AmongChess.Game
 			public static void Postfix()
 			{
 				// Keep the chat visible during the chess game so players can talk.
-				if (HudManager.Instance != null && HudManager.Instance.Chat != null) HudManager.Instance.Chat.SetVisible(true);
+				if (HudManager.Instance != null && HudManager.Instance.Chat != null)
+				{
+					DestroyableSingleton<HudManager>.Instance.Chat.SetVisible(true);
+					DestroyableSingleton<HudManager>.Instance.MatchInfoButton.gameObject.SetActive(false);
+				}
 				HudManager.Instance.ShowTaskComplete();
 				Game.PieceCoords.Clear();
 				string shipDirectory = "PolusShip(Clone)/";

@@ -6,31 +6,31 @@ using HarmonyLib;
 using Reactor;
 using Reactor.Networking.Attributes;
 using Reactor.Patches;
+using Reactor.Utilities;
 using Reactor.Utilities.Extensions;
-using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
 using UnityEngine;
 
 namespace AmongChess
 {
-	[BepInPlugin("kylesmith0905.amongchess", "AmongChess", version)]
+	[BepInPlugin("kylesmith0905.amongchess", "AmongChess", Version)]
 	[BepInProcess("Among Us.exe")]
 	[BepInDependency(ReactorPlugin.Id)]
 	[ReactorModFlags(Reactor.Networking.ModFlags.RequireOnAllClients)]
 	public class AmongChess : BasePlugin
 	{
-		public const string version = "v1.2.1";
+		public const string Version = "v1.2.2";
 
 		public Harmony Harmony = new Harmony("kylesmith0905.amongchess");
 
 		public override void Load()
 		{
+			ReactorCredits.Register("Among Chess", Version, false, ReactorCredits.AlwaysShow);
+
 			ReactorVersionShower.TextUpdated += (text) =>
 			{
 				text.faceColor = new Color32(255, 165, 0, 255);
 				text.fontSize = 3.2f;
-				text.text = "Among Chess " + version;
+				text.text = "Among Chess " + Version;
 			};
 			Harmony.PatchAll();
 		}
